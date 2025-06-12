@@ -3,6 +3,12 @@ const tintColorDark = "#0a7ea4";
 const blue = "#377CC8";
 const red = "#E0533D";
 const green = "#469B88";
+const yellow = "#EED868";
+const strongYellow = "#FFCC00";
+const dark = "#11181C";
+const black = "#000000";
+const light = "#7D7D91";
+const white = "#FFFFFF";
 
 export const Colors = {
   light: {
@@ -20,11 +26,17 @@ export const Colors = {
     blue,
     red,
     green,
+    yellow,
+    dark,
+    black,
+    light,
+    strongYellow,
+    white,
   },
   dark: {
     text: "#ECEDEE",
     paragrahp: "#CFCFCF",
-    background: "#242424",
+    background: "#11181C",
     gray: "#A0A0A0",
     tint: tintColorDark,
     icon: "#9BA1A6",
@@ -36,6 +48,12 @@ export const Colors = {
     blue,
     red,
     green,
+    yellow,
+    dark,
+    black,
+    light,
+    strongYellow,
+    white,
   },
 };
 
