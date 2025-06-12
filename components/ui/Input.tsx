@@ -2,28 +2,43 @@ import { useTheme } from "@/context/ThemeContext";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { Control, Controller, FieldErrors } from "react-hook-form";
-import { Pressable, StyleSheet, Text, TextInput, TextInputProps, View } from "react-native";
+import {
+  Pressable,
+  StyleProp,
+  StyleSheet,
+  Text,
+  TextInput,
+  TextInputProps,
+  View,
+  ViewStyle,
+} from "react-native";
 
-interface FormInputProps extends TextInputProps {
+interface FormInputProps extends Omit<TextInputProps, "style"> {
   name: string;
   control: Control<any>;
   errors: FieldErrors;
   label?: string;
   secureTextEntry?: boolean;
+  isErrorDown?: boolean;
+  containerStyle?: StyleProp<ViewStyle>;
 }
 
 export const FormInput: React.FC<FormInputProps> = (Props: FormInputProps) => {
-  const { name, control, errors, label, secureTextEntry, ...rest } = Props;
+  const { name, control, errors, label, isErrorDown, containerStyle, secureTextEntry, ...rest } = Props;
   const [hidePassword, setHidePassword] = useState(secureTextEntry);
   const { colors, theme } = useTheme();
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, containerStyle]}>
       <View style={styles.labelContainer}>
         {label && <Text style={[styles.label, { color: colors.text }]}>{label}</Text>}
-        {errors[name] && (
-          <Text style={[styles.errorText, { color: colors.red }]}>{errors[name]?.message?.toString()}</Text>
-        )}
+        {isErrorDown === true
+          ? null
+          : errors[name] && (
+              <Text style={[styles.errorText, { color: colors.red }]}>
+                {errors[name]?.message?.toString()}
+              </Text>
+            )}
       </View>
       <Controller
         control={control}
@@ -33,11 +48,11 @@ export const FormInput: React.FC<FormInputProps> = (Props: FormInputProps) => {
             style={[
               styles.inputWrapper,
               { backgroundColor: colors.background, borderColor: colors.border },
-              errors[name] && { borderColor: colors.red }, // <<<<< aplica aquí el error
+              errors[name] && { borderColor: colors.red },
             ]}
           >
             <TextInput
-              style={[styles.input, { color: colors.text }]}
+              style={[styles.input, { color: colors.paragrahp }]}
               onBlur={onBlur}
               onChangeText={onChange}
               value={value}
@@ -53,6 +68,11 @@ export const FormInput: React.FC<FormInputProps> = (Props: FormInputProps) => {
           </View>
         )}
       />
+      {isErrorDown === true && errors[name] && (
+        <Text style={[styles.errorText, { color: colors.red }, { marginTop: 6 }]}>
+          {errors[name]?.message?.toString()}
+        </Text>
+      )}
     </View>
   );
 };

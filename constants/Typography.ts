@@ -13,10 +13,20 @@ export const FontWeights = {
   extraBold: "PlusJakartaSans-ExtraBold",
   interRegular: "Inter-Regular",
   interBold: "Inter-Bold",
+  interMedium: "Inter-Medium",
+  interSemiBold: "Inter-SemiBold",
 };
 
 // Define un tipo para las propiedades de estilo de texto
-export type TextVariant = "heading1" | "heading2" | "heading3" | "body" | "bodySmall" | "caption" | "button"; // Añade más variantes si las necesitas
+export type TextVariant =
+  | "heading1"
+  | "heading2"
+  | "heading3"
+  | "heading4"
+  | "body"
+  | "bodySmall"
+  | "caption"
+  | "button"; // Añade más variantes si las necesitas
 
 // Función para generar los estilos de tipografía basados en el tema
 export const getTypographyStyles = (colors: ColorTheme) =>
@@ -33,6 +43,11 @@ export const getTypographyStyles = (colors: ColorTheme) =>
     },
     heading3: {
       fontSize: 20,
+      fontFamily: FontWeights.medium,
+      color: colors.text,
+    },
+    heading4: {
+      fontSize: 18,
       fontFamily: FontWeights.medium,
       color: colors.text,
     },
