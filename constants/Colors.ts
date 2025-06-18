@@ -32,6 +32,7 @@ export const Colors = {
     light,
     strongYellow,
     white,
+    backgroundCard: "#ffff",
   },
   dark: {
     text: "#ECEDEE",
@@ -45,6 +46,7 @@ export const Colors = {
     primary: "#242424",
     secondary: "#ECEDEE",
     border: "#ACB5BB",
+    backgroundCard: "#1F2937",
     blue,
     red,
     green,
