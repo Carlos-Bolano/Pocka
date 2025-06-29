@@ -7,7 +7,7 @@ type SafeViewProps = {
   style?: StyleProp<ViewStyle>;
 };
 
-export const CustomSafeArea: React.FC<SafeViewProps> = ({ children, style }) => {
+export default function CustomSafeAreaView({ children, style }: SafeViewProps) {
   const insets = useSafeAreaInsets();
 
   const top = typeof insets.top === "number" ? insets.top : 0;
@@ -23,6 +23,7 @@ export const CustomSafeArea: React.FC<SafeViewProps> = ({ children, style }) => 
           paddingBottom: bottom,
           paddingLeft: left,
           paddingRight: right,
+          flex: 1,
         },
         style,
       ]}
@@ -30,6 +31,4 @@ export const CustomSafeArea: React.FC<SafeViewProps> = ({ children, style }) => 
       {children}
     </View>
   );
-};
-
-export default CustomSafeArea;
+}
