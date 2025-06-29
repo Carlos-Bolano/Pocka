@@ -3,16 +3,23 @@ import React from "react";
 import { StyleSheet, View } from "react-native";
 
 interface ProgressBarProps {
-  progressWidth: number;
+  progress: number; // value between 0 and 100
   color?: string;
+  bgColor?: string;
 }
 
-export default function ProgressBar({ progressWidth, color }: ProgressBarProps) {
+export default function ProgressBar({ progress, color, bgColor }: ProgressBarProps) {
   const { colors } = useTheme();
+
+  const clampedProgress = Math.max(0, Math.min(100, progress));
+
   return (
-    <View style={[styles.progressBarContainer, { backgroundColor: colors.background }]}>
+    <View style={[styles.progressBarContainer, { backgroundColor: bgColor || colors.background }]}>
       <View
-        style={[styles.progressBarFill, { width: progressWidth, backgroundColor: color || colors.secondary }]}
+        style={[
+          styles.progressBarFill,
+          { width: `${clampedProgress}%`, backgroundColor: color || colors.secondary },
+        ]}
       />
     </View>
   );
@@ -23,6 +30,7 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     overflow: "hidden",
+    width: "100%",
   },
   progressBarFill: {
     height: "100%",

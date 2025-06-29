@@ -51,7 +51,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess }) => {
       const result = await loginWithGoogle();
 
       if (result) {
-        console.log("Logged in with Google successfully");
+        Alert.alert("Success", "Logged in with Google successfully");
         refetch();
       } else {
         Alert.alert("Error", "Failed to log in with Google");

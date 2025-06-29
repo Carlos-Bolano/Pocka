@@ -47,7 +47,7 @@ export const FormInput: React.FC<FormInputProps> = (Props: FormInputProps) => {
           <View
             style={[
               styles.inputWrapper,
-              { backgroundColor: colors.background, borderColor: colors.border },
+              { backgroundColor: colors.backgroundCard, borderColor: colors.border },
               errors[name] && { borderColor: colors.red },
             ]}
           >
@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 6,
-    marginTop: 6,
+    marginTop: 10,
   },
   input: {
     flex: 1,

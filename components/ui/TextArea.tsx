@@ -17,7 +17,7 @@ const TextArea: React.FC<TextAreaProps> = ({ style: inputStyle, error, ...rest }
       {error && <Typo style={styles.error}>{error}</Typo>}
       <TextInput
         style={[styles.textAreaInput, inputStyle]}
-        placeholderTextColor={Colors.light.lightText}
+        placeholderTextColor={Colors.light.text}
         multiline={true} // Habilita múltiples líneas
         {...rest}
       />
