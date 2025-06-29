@@ -59,4 +59,19 @@ export const Colors = {
   },
 };
 
+interface AllowedColorItem {
+  name: string;
+  color: string;
+}
+
+// Función que genera los colores permitidos basándose en la paleta de tu tema
+// Esto permite que los colores de los objetivos se adapten si tu tema cambia
+export const getGoalColors = (colors: ColorTheme): AllowedColorItem[] => [
+  { name: "Green", color: colors.green },
+  { name: "Yellow", color: colors.yellow },
+  { name: "Red", color: colors.red },
+  { name: "Blue", color: colors.blue },
+  { name: "Blue Grey", color: "#607D8B" },
+];
+
 export type ColorTheme = typeof Colors.light;

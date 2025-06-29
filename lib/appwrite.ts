@@ -1,3 +1,5 @@
+import { Category } from "@/models/CategorySchema";
+import { Goal, GoalData } from "@/models/GoalSchema";
 import { Transaction, TransactionData } from "@/models/TransactionSchema";
 import * as Linking from "expo-linking";
 import { openAuthSessionAsync } from "expo-web-browser";
@@ -30,6 +32,8 @@ client.setEndpoint(config.endpoint!).setProject(config.projectId!).setPlatform(c
 export const avatar = new Avatars(client);
 export const account = new Account(client);
 export const databases = new Databases(client);
+
+// --- Métodos de Autenticación y Usuario ---
 
 export async function loginWithGoogle() {
   try {
@@ -86,41 +90,21 @@ export async function getCurrentUser() {
   }
 }
 
-// --- Métodos para Categorías (Categories) ---
-
-// Tipo para los datos de la categoría
-export interface Category {
-  $id: string; // Appwrite añade un $id a cada documento
-  name: string;
-  iconName: string;
-  iconFamily: string;
-  type: "income" | "expense";
-  isUserDefined: boolean;
-  // Puedes añadir otros campos de Appwrite si los necesitas, como $createdAt, $updatedAt, etc.
-}
-
 export async function getCategories(
   typeFilter?: "income" | "expense",
   isUserDefinedFilter: boolean = false
-): Promise<Category[]> {
+): Promise<any[]> {
+  // Usamos 'any' temporalmente si Category no está importada, idealmente debería ser Category[]
   try {
     let queries = [];
 
-    // Filtramos por isUserDefined
     queries.push(Query.equal("isUserDefined", isUserDefinedFilter));
 
-    // Si hay un filtro de tipo, lo agregamos
     if (typeFilter) {
       queries.push(Query.equal("type", typeFilter));
     }
 
-    // AGREGAR EL LÍMITE DE DOCUMENTOS AQUÍ
-    // Un valor alto como 100 o 200 es común para obtener "todas" las categorías
-    // sin necesidad de paginación compleja si el número es manejable.
-    // El límite máximo configurable en Appwrite es 100 por solicitud.
-    queries.push(Query.limit(100)); // <--- ¡AÑADIDO ESTO!
-
-    // queries.push(Query.orderAsc("name")); // Ordenar por nombre
+    queries.push(Query.limit(100));
 
     const response = await databases.listDocuments(
       config.databaseId!,
@@ -128,6 +112,7 @@ export async function getCategories(
       queries
     );
 
+    // Mapeo genérico, adapta esto a tu tipo Category si no está ya en tu archivo appwrite.ts
     const categories: Category[] = response.documents.map((doc) => ({
       $id: doc.$id,
       name: doc.name,
@@ -135,6 +120,11 @@ export async function getCategories(
       iconFamily: doc.iconFamily,
       type: doc.type,
       isUserDefined: doc.isUserDefined,
+      $createdAt: doc.$createdAt,
+      $updatedAt: doc.$updatedAt,
+      $permissions: doc.$permissions,
+      $databaseId: doc.$databaseId,
+      $collectionId: doc.$collectionId,
     }));
 
     return categories;
@@ -143,10 +133,7 @@ export async function getCategories(
     return [];
   }
 }
-/**
- * Elimina una categoría.
- * Requiere que el usuario autenticado tenga permisos de eliminación sobre el documento.
- */
+
 export async function deleteCategory(categoryId: string) {
   try {
     await databases.deleteDocument(config.databaseId!, config.categoriesCollectionId!, categoryId);
@@ -157,69 +144,66 @@ export async function deleteCategory(categoryId: string) {
   }
 }
 
+// --- Métodos para Transacciones (Transactions) ---
+
 export async function createTransaction(transactionData: TransactionData): Promise<Transaction | null> {
   try {
-    const doc = await databases.createDocument(
-      // Renombramos a 'doc' para mayor claridad
+    const doc: any = await databases.createDocument(
+      // Usa 'any' temporalmente para Document si no se infiere bien
       config.databaseId!,
       config.transactionsCollectionId!,
-      ID.unique(), // Appwrite generará un ID único para el documento
-      transactionData, // Los datos ya vienen validados por Zod
+      ID.unique(),
+      transactionData,
       [
-        // Permisos de lectura y escritura para el usuario que crea la transacción
         Permission.read(Role.user(transactionData.userId)),
         Permission.write(Role.user(transactionData.userId)),
       ]
     );
 
-    // Mapear explícitamente el Documento de Appwrite a tu interfaz Transaction
     const newTransaction: Transaction = {
+      $id: doc.$id,
+      userId: doc.userId,
+      amount: doc.amount,
+      type: doc.type,
+      categoryId: doc.categoryId, // Asumiendo que categoryId es un string/ID directo
+      date: doc.date,
+      description: doc.description || undefined,
+      $createdAt: doc.$createdAt,
+      $updatedAt: doc.$updatedAt,
+      // $permissions: doc.$permissions,
+      // $databaseId: doc.$databaseId,
+      // $collectionId: doc.$collectionId,
+    };
+
+    return newTransaction;
+  } catch (error) {
+    console.error("Error al crear transacción en Appwrite:", error);
+    return null;
+  }
+}
+
+export async function getTransactionById(transactionId: string): Promise<Transaction | null> {
+  try {
+    const doc: any = await databases.getDocument(
+      // Usa 'any' temporalmente para Document
+      config.databaseId!,
+      config.transactionsCollectionId!,
+      transactionId
+    );
+
+    const transaction: Transaction = {
       $id: doc.$id,
       userId: doc.userId,
       amount: doc.amount,
       type: doc.type,
       categoryId: doc.categoryId,
       date: doc.date,
-      description: doc.description,
+      description: doc.description || undefined,
       $createdAt: doc.$createdAt,
       $updatedAt: doc.$updatedAt,
-      // Asegúrate de incluir todos los campos de tu interfaz Transaction
-      // y los metadatos de Appwrite ($createdAt, $updatedAt, etc.)
-    };
-
-    console.log("Transacción creada con éxito:", newTransaction);
-    return newTransaction; // Retornamos el objeto mapeado
-  } catch (error) {
-    console.error("Error al crear transacción en Appwrite:", error);
-    return null;
-  }
-}
-/**
- * Obtiene una transacción específica por su ID.
- * @param transactionId El ID de la transacción.
- * @returns La transacción encontrada, o null si no existe o hay un error.
- */
-export async function getTransactionById(transactionId: string): Promise<Transaction | null> {
-  try {
-    const doc = await databases.getDocument(
-      // Renombramos a 'doc' para claridad
-      config.databaseId!,
-      config.transactionsCollectionId!,
-      transactionId
-    );
-
-    // Mapear explícitamente el Documento de Appwrite a tu interfaz Transaction
-    const transaction: Transaction = {
-      $id: doc.$id,
-      userId: doc.userId, // Asegúrate que estas propiedades existan en el documento de Appwrite
-      amount: doc.amount,
-      type: doc.type,
-      categoryId: doc.categoryId,
-      date: doc.date,
-      description: doc.description,
-      $createdAt: doc.$createdAt,
-      $updatedAt: doc.$updatedAt,
-      // Añade cualquier otra propiedad de Appwrite que necesites ($permissions, $collectionId, etc.)
+      // $permissions: doc.$permissions,
+      // $databaseId: doc.$databaseId,
+      // $collectionId: doc.$collectionId,
     };
 
     return transaction;
@@ -229,26 +213,19 @@ export async function getTransactionById(transactionId: string): Promise<Transac
   }
 }
 
-/**
- * Actualiza una transacción existente en Appwrite.
- * @param transactionId El ID de la transacción a actualizar.
- * @param updatedData Los datos a actualizar de la transacción.
- * @returns La transacción actualizada, o null si falla.
- */
 export async function updateTransaction(
   transactionId: string,
-  updatedData: Partial<TransactionData> // Partial permite actualizar solo algunos campos
+  updatedData: Partial<TransactionData>
 ): Promise<Transaction | null> {
   try {
-    const doc = await databases.updateDocument(
-      // Renombramos a 'doc'
+    const doc: any = await databases.updateDocument(
+      // Usa 'any' temporalmente para Document
       config.databaseId!,
       config.transactionsCollectionId!,
       transactionId,
       updatedData
     );
 
-    // Mapear explícitamente el Documento de Appwrite a tu interfaz Transaction
     const updatedTransaction: Transaction = {
       $id: doc.$id,
       userId: doc.userId,
@@ -256,28 +233,25 @@ export async function updateTransaction(
       type: doc.type,
       categoryId: doc.categoryId,
       date: doc.date,
-      description: doc.description,
+      description: doc.description || undefined,
       $createdAt: doc.$createdAt,
       $updatedAt: doc.$updatedAt,
-      // Asegúrate de que todos los campos requeridos por tu interfaz Transaction estén aquí
+      // $permissions: doc.$permissions,
+      // $databaseId: doc.$databaseId,
+      // $collectionId: doc.$collectionId,
     };
 
-    console.log("Transacción actualizada con éxito:", updatedTransaction);
-    return updatedTransaction; // Retornamos el objeto mapeado
+    return updatedTransaction;
   } catch (error) {
     console.error(`Error al actualizar transacción ${transactionId} en Appwrite:`, error);
     return null;
   }
 }
-/**
- * Elimina una transacción específica de Appwrite.
- * @param transactionId El ID de la transacción a eliminar.
- * @returns true si se eliminó con éxito, false si falla.
- */
+
 export async function deleteTransaction(transactionId: string): Promise<boolean> {
   try {
     await databases.deleteDocument(config.databaseId!, config.transactionsCollectionId!, transactionId);
-    console.log(`Transacción ${transactionId} eliminada con éxito.`);
+
     return true;
   } catch (error) {
     console.error(`Error al eliminar transacción ${transactionId} de Appwrite:`, error);
@@ -285,12 +259,6 @@ export async function deleteTransaction(transactionId: string): Promise<boolean>
   }
 }
 
-/**
- * Obtiene todas las transacciones de un usuario.
- * @param userId El ID del usuario.
- * @param queries Consultas adicionales (ej. filtrado por tipo, paginación, etc.).
- * @returns Un array de transacciones.
- */
 export async function getTransactionsForUser(userId: string, queries: string[] = []): Promise<Transaction[]> {
   try {
     const response = await databases.listDocuments(config.databaseId!, config.transactionsCollectionId!, [
@@ -305,17 +273,206 @@ export async function getTransactionsForUser(userId: string, queries: string[] =
       userId: doc.userId,
       amount: doc.amount,
       type: doc.type,
-      // ¡CAMBIO AQUÍ! Asigna el objeto completo si Appwrite lo devuelve así
-      categoryId: doc.categoryId, // Appwrite ya te devuelve el objeto Category incrustado
+      categoryId: doc.categoryId,
       date: doc.date,
-      description: doc.description,
+      description: doc.description || undefined,
       $createdAt: doc.$createdAt,
       $updatedAt: doc.$updatedAt,
+      $permissions: doc.$permissions,
+      $databaseId: doc.$databaseId,
+      $collectionId: doc.$collectionId,
     }));
 
     return transactions;
   } catch (error) {
     console.error(`Error al obtener transacciones para el usuario ${userId} de Appwrite:`, error);
+    return [];
+  }
+}
+
+// --- Métodos para Objetivos (Goals) ---
+
+/**
+ * Crea un nuevo objetivo en Appwrite.
+ * @param goalData Los datos del objetivo a crear.
+ * @returns El objetivo creado (con su $id, $createdAt, etc.) o null si falla.
+ */
+export async function createGoal(goalData: GoalData): Promise<Goal | null> {
+  try {
+    const doc: any = await databases.createDocument(
+      // Usamos 'any' temporalmente para Document
+      config.databaseId!,
+      config.goalsCollectionId!,
+      ID.unique(),
+      goalData,
+      [Permission.read(Role.user(goalData.userId)), Permission.write(Role.user(goalData.userId))]
+    );
+
+    // Mapear explícitamente el Documento de Appwrite a tu interfaz Goal
+    const newGoal: Goal = {
+      $id: doc.$id,
+      userId: doc.userId,
+      name: doc.name,
+      targetAmount: doc.targetAmount,
+      currentAmount: doc.currentAmount,
+      startDate: doc.startDate,
+      status: doc.status,
+      iconName: doc.iconName,
+      iconFamily: doc.iconFamily,
+      color: doc.color,
+      description: doc.description || undefined,
+      $createdAt: doc.$createdAt,
+      $updatedAt: doc.$updatedAt,
+      $permissions: doc.$permissions, // Asegúrate de que Goal incluye estas
+      $databaseId: doc.$databaseId, // Asegúrate de que Goal incluye estas
+      $collectionId: doc.$collectionId, // Asegúrate de que Goal incluye estas
+    };
+
+    return newGoal;
+  } catch (error) {
+    console.error("Error al crear objetivo en Appwrite:", error);
+    return null;
+  }
+}
+
+/**
+ * Obtiene un objetivo específico por su ID.
+ * @param goalId El ID del objetivo.
+ * @returns El objetivo encontrado, o null si no existe o hay un error.
+ */
+export async function getGoalById(goalId: string): Promise<Goal | null> {
+  try {
+    const doc: any = await databases.getDocument(
+      // Usamos 'any' temporalmente para Document
+      config.databaseId!,
+      config.goalsCollectionId!,
+      goalId
+    );
+
+    // Mapear explícitamente el Documento de Appwrite a tu interfaz Goal
+    const goal: Goal = {
+      $id: doc.$id,
+      userId: doc.userId,
+      name: doc.name,
+      targetAmount: doc.targetAmount,
+      currentAmount: doc.currentAmount,
+      startDate: doc.startDate,
+      status: doc.status,
+      iconName: doc.iconName,
+      iconFamily: doc.iconFamily,
+      color: doc.color,
+      description: doc.description || undefined,
+      $createdAt: doc.$createdAt,
+      $updatedAt: doc.$updatedAt,
+      $permissions: doc.$permissions,
+      $databaseId: doc.$databaseId,
+      $collectionId: doc.$collectionId,
+    };
+
+    return goal;
+  } catch (error) {
+    console.error(`Error al obtener objetivo ${goalId} de Appwrite:`, error);
+    return null;
+  }
+}
+
+/**
+ * Actualiza un objetivo existente en Appwrite.
+ * @param goalId El ID del objetivo a actualizar.
+ * @param updatedData Los datos a actualizar del objetivo (pueden ser parciales).
+ * @returns El objetivo actualizado, o null si falla.
+ */
+export async function updateGoal(goalId: string, updatedData: Partial<GoalData>): Promise<Goal | null> {
+  try {
+    const doc: any = await databases.updateDocument(
+      // Usamos 'any' temporalmente para Document
+      config.databaseId!,
+      config.goalsCollectionId!,
+      goalId,
+      updatedData
+    );
+
+    // Mapear explícitamente el Documento de Appwrite a tu interfaz Goal
+    const updatedGoal: Goal = {
+      $id: doc.$id,
+      userId: doc.userId,
+      name: doc.name,
+      targetAmount: doc.targetAmount,
+      currentAmount: doc.currentAmount,
+      startDate: doc.startDate,
+      status: doc.status,
+      iconName: doc.iconName,
+      iconFamily: doc.iconFamily,
+      color: doc.color,
+      description: doc.description || undefined,
+      $createdAt: doc.$createdAt,
+      $updatedAt: doc.$updatedAt,
+      $permissions: doc.$permissions,
+      $databaseId: doc.$databaseId,
+      $collectionId: doc.$collectionId,
+    };
+
+    console.log("Objetivo actualizado con éxito:", updatedGoal);
+    return updatedGoal;
+  } catch (error) {
+    console.error(`Error al actualizar objetivo ${goalId} en Appwrite:`, error);
+    return null;
+  }
+}
+
+/**
+ * Elimina un objetivo específico de Appwrite.
+ * @param goalId El ID del objetivo a eliminar.
+ * @returns true si se eliminó con éxito, false si falla.
+ */
+export async function deleteGoal(goalId: string): Promise<boolean> {
+  try {
+    await databases.deleteDocument(config.databaseId!, config.goalsCollectionId!, goalId);
+    console.log(`Objetivo ${goalId} eliminado con éxito.`);
+    return true;
+  } catch (error) {
+    console.error(`Error al eliminar objetivo ${goalId} de Appwrite:`, error);
+    return false;
+  }
+}
+
+/**
+ * Obtiene todos los objetivos de un usuario.
+ * @param userId El ID del usuario.
+ * @param queries Consultas adicionales (ej. filtrado por estado, paginación, etc.).
+ * @returns Un array de objetivos.
+ */
+export async function getGoalsForUser(userId: string, queries: string[] = []): Promise<Goal[]> {
+  try {
+    const response = await databases.listDocuments(config.databaseId!, config.goalsCollectionId!, [
+      Query.equal("userId", userId),
+      Query.orderDesc("$createdAt"),
+      Query.limit(100),
+      ...queries,
+    ]);
+
+    const goals: Goal[] = response.documents.map((doc: any) => ({
+      $id: doc.$id,
+      userId: doc.userId,
+      name: doc.name,
+      targetAmount: doc.targetAmount,
+      currentAmount: doc.currentAmount,
+      startDate: doc.startDate,
+      status: doc.status,
+      iconName: doc.iconName,
+      iconFamily: doc.iconFamily,
+      color: doc.color,
+      description: doc.description || undefined,
+      $createdAt: doc.$createdAt,
+      $updatedAt: doc.$updatedAt,
+      $permissions: doc.$permissions,
+      $databaseId: doc.$databaseId,
+      $collectionId: doc.$collectionId,
+    }));
+
+    return goals;
+  } catch (error) {
+    console.error(`Error al obtener objetivos para el usuario ${userId} de Appwrite:`, error);
     return [];
   }
 }
