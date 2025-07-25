@@ -1,208 +1,129 @@
 import { Colors } from "@/constants/Colors";
+import { useTheme } from "@/context/ThemeContext";
 import { logout } from "@/lib/appwrite";
-// import { useAuth } from "@/context/AuthContext";
+import { useGlobalContext } from "@/lib/global-provider";
 import Entypo from "@expo/vector-icons/Entypo";
 import { Image } from "expo-image";
-import { useRouter } from "expo-router";
 import React from "react";
 import { Alert, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from "react-native";
 
 export default function Settings() {
-  // const { logout, user } = useAuth();
-  const router = useRouter();
+  const { user, refetch } = useGlobalContext();
+  const { colors, toggleTheme, theme } = useTheme();
+
+  // Handle logout functionality
+  const handleLogout = () => {
+    Alert.alert("Logout", "Are you sure you want to logout?", [
+      { text: "Cancel", style: "destructive" },
+      {
+        text: "Logout",
+        onPress: async () => {
+          const logoutSuccess = await logout();
+          if (logoutSuccess) {
+            await refetch();
+          } else {
+            Alert.alert("Error", "Failed to logout. Please try again.");
+          }
+        },
+      },
+    ]);
+  };
+
+  // Function to show feature not available alert
+  const showFeatureNotAvailable = () => {
+    Alert.alert("Feature Not Available", "This feature is not available yet.");
+  };
+
   return (
-    <ScrollView contentContainerStyle={styles.content}>
-      <View style={styles.container}>
-        <View style={[styles.section]}>
-          <Text style={styles.sectionTitle}>Cuenta</Text>
-          <View style={styles.sectionBody}>
-            <TouchableOpacity
-              // onPress={() => {
-              //   router.push("/(authenticated)/(modal)/profile");
-              // }}
-              style={styles.profile}
-            >
-              <Image
-                alt=""
-                source={{
-                  uri: "https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=facearea&facepad=2.5&w=256&h=256&q=80",
-                }}
-                style={styles.profileAvatar}
-              />
-              <View style={styles.profileBody}>
-                <Text style={styles.profileName}>Carlos Bolanos</Text>
-                <Text style={styles.profileHandle}>carlosbolanos@gmail.com</Text>
+    <ScrollView contentContainerStyle={[styles.container, { backgroundColor: colors.background }]}>
+      <View>
+        {/* Account Section */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Account</Text>
+          <View style={[styles.sectionBody, { backgroundColor: colors.backgroundCard }]}>
+            <TouchableOpacity style={styles.profileButton} onPress={showFeatureNotAvailable}>
+              <Image alt="" source={user?.avatar} style={styles.profileAvatar} />
+              <View style={styles.profileInfo}>
+                <Text style={[styles.profileName, { color: colors.text }]}>{user?.name}</Text>
+                <Text style={[styles.profileHandle, { color: colors.text }]}>{user?.email}</Text>
               </View>
-              <Entypo name="chevron-right" size={28} color="#858585" />
+              <Entypo name="chevron-right" size={28} color={colors.icon} />
             </TouchableOpacity>
           </View>
         </View>
 
+        {/* Preferences Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Preferencias</Text>
-          <View style={styles.sectionBody}>
-            <View style={[styles.rowWrapper, styles.rowFirst]}>
-              <TouchableOpacity
-                onPress={() => {
-                  Alert.alert(
-                    "Caracteristica no implementada",
-                    "esta caracteristica sera implementada en futuras actualizaciones."
-                  );
-                }}
-                style={styles.row}
-              >
-                <Text style={styles.rowLabel}>Language</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Preferencias</Text>
+          <View style={[styles.sectionBody, { backgroundColor: colors.backgroundCard }]}>
+            {/* Language Row */}
+            <View style={[styles.rowWrapper, styles.rowFirst, { borderTopWidth: 0 }]}>
+              <TouchableOpacity onPress={showFeatureNotAvailable} style={styles.row}>
+                <Text style={[styles.rowLabel, { color: colors.text }]}>Language</Text>
                 <View style={styles.rowSpacer} />
-                <Text style={styles.rowValue}>English</Text>
-                <Entypo name="chevron-right" size={28} color="#858585" />
+                <Text style={[styles.rowValue, { color: colors.text }]}>English</Text>
+                <Entypo name="chevron-right" size={28} color={colors.icon} />
               </TouchableOpacity>
             </View>
 
-            <View style={styles.rowWrapper}>
-              <View style={styles.row}>
-                <Text style={styles.rowLabel}>Email Notifications</Text>
+            {/* Dark Mode Row */}
+            <View style={[styles.rowWrapper, styles.rowLast, { borderColor: colors.border }]}>
+              <TouchableOpacity onPress={toggleTheme} style={styles.row} activeOpacity={1}>
+                <Text style={[styles.rowLabel, { color: colors.text }]}>Dark Mode</Text>
                 <View style={styles.rowSpacer} />
-                <Switch style={{ transform: [{ scaleX: 0.95 }, { scaleY: 0.95 }] }} value={true} />
-              </View>
-            </View>
-            <View style={[styles.rowWrapper, styles.rowLast]}>
-              <View style={styles.row}>
-                <Text style={styles.rowLabel}>Push Notifications</Text>
-                <View style={styles.rowSpacer} />
-                <Switch value={false} />
-              </View>
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Resources</Text>
-          <View style={styles.sectionBody}>
-            <View style={[styles.rowWrapper, styles.rowFirst]}>
-              <TouchableOpacity
-                onPress={() => {
-                  Alert.alert(
-                    "Caracteristica no implementada",
-                    "esta caracteristica sera implementada en futuras actualizaciones."
-                  );
-                }}
-                style={styles.row}
-              >
-                <Text style={styles.rowLabel}>Contact Us</Text>
-                <View style={styles.rowSpacer} />
-                <Entypo name="chevron-right" size={28} color="#858585" />
-              </TouchableOpacity>
-            </View>
-            <View style={styles.rowWrapper}>
-              <TouchableOpacity
-                onPress={() => {
-                  Alert.alert(
-                    "Caracteristica no implementada",
-                    "esta caracteristica sera implementada en futuras actualizaciones."
-                  );
-                }}
-                style={styles.row}
-              >
-                <Text style={styles.rowLabel}>Report Bug</Text>
-                <View style={styles.rowSpacer} />
-                <Entypo name="chevron-right" size={28} color="#858585" />
-              </TouchableOpacity>
-            </View>
-            <View style={styles.rowWrapper}>
-              <TouchableOpacity
-                onPress={() => {
-                  Alert.alert(
-                    "Caracteristica no implementada",
-                    "esta caracteristica sera implementada en futuras actualizaciones."
-                  );
-                }}
-                style={styles.row}
-              >
-                <Text style={styles.rowLabel}>Rate in App Store</Text>
-                <View style={styles.rowSpacer} />
-                <Entypo name="chevron-right" size={28} color="#858585" />
-              </TouchableOpacity>
-            </View>
-            <View style={[styles.rowWrapper, styles.rowLast]}>
-              <TouchableOpacity
-                onPress={() => {
-                  Alert.alert(
-                    "Caracteristica no implementada",
-                    "esta caracteristica sera implementada en futuras actualizaciones."
-                  );
-                }}
-                style={styles.row}
-              >
-                <Text style={styles.rowLabel}>Terms and Privacy</Text>
-                <View style={styles.rowSpacer} />
-                <Entypo name="chevron-right" size={28} color="#858585" />
+                {/* Assuming `isDark` state exists in your ThemeContext */}
+                <Switch
+                  value={theme === "dark"}
+                  onValueChange={toggleTheme}
+                  trackColor={{ false: Colors.light.gray, true: Colors.light.primary }}
+                  thumbColor={colors.tint}
+                />
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </View>
-      <Text style={styles.contentFooter}>App Version 0.0.1 - Copyright © 2024</Text>
-      <View style={styles.section}>
-        <View style={styles.sectionBody}>
-          <View
-            style={[
-              styles.rowWrapper,
-              styles.rowFirst,
-              styles.rowLast,
-              { alignItems: "center", backgroundColor: Colors.light.red },
-            ]}
-          >
-            <TouchableOpacity
-              onPress={() => {
-                Alert.alert("Cerrar Sesión", "Estas seguro de cerrar sesión?", [
-                  { text: "Cancelar", style: "destructive" },
-                  {
-                    text: "Cerrar Sesión",
-                    onPress: () => {
-                      logout();
-                      router.replace("/");
-                    },
-                  },
-                ]);
-              }}
-              style={styles.row}
-            >
-              <Text style={[styles.rowLabel, styles.rowLabelLogout]}>Cerrar Sesión</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+
+      {/* Footer and Logout Button */}
+      <View style={styles.footerSection}>
+        <Text style={[styles.contentFooter, { color: colors.text }]}>
+          App Version 0.0.1 - Copyright © 2024
+        </Text>
+        <TouchableOpacity
+          onPress={handleLogout}
+          style={[styles.logoutButton, { backgroundColor: Colors.light.red }]}
+        >
+          <Text style={styles.logoutButtonText}>Cerrar Sesión</Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  content: {
-    flex: 1,
-    paddingHorizontal: 16,
-    backgroundColor: Colors.light.background,
-  },
   container: {
-    marginTop: 24,
+    flexGrow: 1, // Use flexGrow for ScrollView contentContainerStyle
+    paddingHorizontal: 16,
+    paddingVertical: 20,
+    justifyContent: "space-between", // Distribute space between sections and footer
   },
   contentFooter: {
-    marginTop: 24,
+    marginBottom: 20,
     fontSize: 13,
     fontWeight: "500",
     textAlign: "center",
   },
   /** Section */
   section: {
-    paddingVertical: 12,
+    marginBottom: 20, // Add margin between sections
   },
   sectionTitle: {
-    margin: 8,
-    marginLeft: 12,
+    marginHorizontal: 12,
+    marginBottom: 8,
     fontSize: 13,
     fontFamily: "Inika-Bold",
     letterSpacing: 0.33,
     fontWeight: "500",
-    color: Colors.light.text,
     textTransform: "uppercase",
   },
   sectionBody: {
@@ -215,12 +136,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 1.41,
     elevation: 2,
+    overflow: "hidden", // Ensures children respect borderRadius
   },
   /** Profile */
-  profile: {
+  profileButton: {
     padding: 12,
-    backgroundColor: "#fff",
-    borderRadius: 12,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "flex-start",
@@ -231,7 +151,7 @@ const styles = StyleSheet.create({
     borderRadius: 9999,
     marginRight: 12,
   },
-  profileBody: {
+  profileInfo: {
     marginRight: "auto",
   },
   profileName: {
@@ -239,14 +159,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: "Inika-Bold",
     fontWeight: "600",
-    color: "#292929",
   },
   profileHandle: {
     marginTop: 2,
     fontSize: 16,
     fontWeight: "400",
     fontFamily: "Cagliostro",
-    color: Colors.light.icon,
   },
   /** Row */
   row: {
@@ -259,9 +177,8 @@ const styles = StyleSheet.create({
   },
   rowWrapper: {
     paddingLeft: 16,
-    backgroundColor: "#fff",
-    borderTopWidth: 1,
-    borderColor: "#f0f0f0",
+    borderBottomWidth: 1, // Use borderBottomWidth for separation
+    borderColor: "#f0f0f0", // Default border color, can be themed
   },
   rowFirst: {
     borderTopLeftRadius: 12,
@@ -271,7 +188,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     letterSpacing: 0.24,
     fontFamily: "Cagliostro",
-    color: "#000",
   },
   rowSpacer: {
     flexGrow: 1,
@@ -282,18 +198,31 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: "Cagliostro",
     fontWeight: "500",
-    color: "#ababab",
     marginRight: 4,
   },
   rowLast: {
     borderBottomLeftRadius: 12,
     borderBottomRightRadius: 12,
+    borderBottomWidth: 0, // No border at the very bottom
   },
-  rowLabelLogout: {
-    width: "100%",
-    textAlign: "center",
+  /** Logout Button */
+  footerSection: {
+    marginTop: "auto", // Push to the bottom
+    alignItems: "center",
+    paddingBottom: 20, // Add some padding at the bottom
+  },
+  logoutButton: {
+    width: "100%", // Take full width
+    paddingVertical: 12,
+    borderRadius: 12, // Rounded corners
+    alignItems: "center", // Center text horizontally
+    justifyContent: "center", // Center text vertically
+    marginTop: 10, // Space from footer text
+  },
+  logoutButtonText: {
+    fontSize: 18,
     fontWeight: "600",
     fontFamily: "Inika-Bold",
-    color: "#fff",
+    color: "#fff", // White text
   },
 });
