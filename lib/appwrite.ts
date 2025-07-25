@@ -5,6 +5,7 @@ import * as Linking from "expo-linking";
 import { openAuthSessionAsync } from "expo-web-browser";
 import {
   Account,
+  AppwriteException,
   Avatars,
   Client,
   Databases,
@@ -82,10 +83,21 @@ export async function getCurrentUser() {
         avatar: userAvatar.toString(),
       };
     }
-
-    return null;
+    return null; // En caso de que Appwrite.get() devuelva un objeto sin $id (aunque es poco probable)
   } catch (error) {
-    console.log("Error getting current user:", error);
+    // Verificamos si el error es una AppwriteException y si es por falta de permisos
+    if (
+      error instanceof AppwriteException &&
+      error.code === 401 &&
+      error.message.includes("missing scope (account)")
+    ) {
+      // Este es el error esperado cuando no hay sesión.
+      // No es necesario loguearlo como un error grave, solo indicamos que no hay usuario.
+      console.log("No active session found, user is a guest.");
+      return null;
+    }
+    // Para cualquier otro tipo de error, lo logueamos como un error real
+    console.error("Error getting current user:", error);
     return null;
   }
 }
