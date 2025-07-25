@@ -1,6 +1,5 @@
 import Logo from "@/assets/svgs/logo.svg";
 import { useTheme } from "@/context/ThemeContext";
-import { resetOnboarding } from "@/utils/onboarding";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { KeyboardAvoidingView, Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -16,13 +15,7 @@ const AuthTabSelector = () => {
 
   const handleAuthSuccess = async () => {
     console.log("Authentication successful, redirecting...");
-    // Aquí tu lógica de redirección, por ejemplo:
-    // router.replace("/(app)/home"); // o la ruta que corresponda
-  };
-
-  const handleResetAndRestart = async () => {
-    await resetOnboarding();
-    router.replace("/");
+    router.replace("/(authenticated)/(tabs)");
   };
 
   return (

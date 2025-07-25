@@ -7,9 +7,8 @@ import { Image } from "expo-image";
 import { Redirect } from "expo-router";
 import React from "react";
 import { useForm } from "react-hook-form";
-import { Alert, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Button from "../ui/Button";
-import Checkbox from "../ui/Checkbox";
 import { FormInput } from "../ui/Input";
 
 interface LoginFormProps {
@@ -83,7 +82,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         control={control}
         errors={errors}
       />
-      <View
+      {/* <View
         style={[styles.text, { justifyContent: "space-between", flexDirection: "row", alignItems: "center" }]}
       >
         <Checkbox label="Remember me" onChange={(checked) => {}} checked={true} />
@@ -94,7 +93,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         >
           <Text style={{ color: colors.blue, fontSize: 16, fontWeight: "500" }}>Forgot password?</Text>
         </Pressable>
-      </View>
+      </View> */}
       <Button onPress={handleSubmit(onSubmit)} style={{ marginTop: 20, backgroundColor: colors.secondary }}>
         Login
       </Button>
