@@ -1,21 +1,17 @@
-// src/app/(authenticated)/(tabs)/goals.tsx
-
 import CustomSafeAreaView from "@/components/CustomSafeAreaView";
 import GoalCard from "@/components/goals/GoalCard";
 import HeaderSection from "@/components/HeaderSection";
-// Ya no usamos useTheme aquí, sino useColorScheme
-import { Colors } from "@/constants/Colors"; // Importa tus colores directamente
-import { router, useFocusEffect } from "expo-router"; // Importa useFocusEffect para recargar al volver
+import { router, useFocusEffect } from "expo-router";
 import React, { useCallback, useState } from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View, useColorScheme } from "react-native";
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import Button from "@/components/ui/Button";
+import { useTheme } from "@/context/ThemeContext";
 import { getCurrentUser, getGoalsForUser } from "@/lib/appwrite"; // Importa las funciones de Appwrite
 import { Goal } from "@/models/GoalSchema"; // Importa el tipo Goal
 
 export default function Goals() {
-  const colorScheme = useColorScheme();
-  const colors = colorScheme === "dark" ? Colors.dark : Colors.light;
+  const { colors } = useTheme();
 
   const [goals, setGoals] = useState<Goal[]>([]);
   const [isLoadingGoals, setIsLoadingGoals] = useState(true);
@@ -80,7 +76,7 @@ export default function Goals() {
           ) : goals.length === 0 ? (
             <View style={styles.emptyGoalsContainer}>
               <Text style={{ color: colors.text, fontSize: 16, textAlign: "center" }}>
-                No goals created yet. Tap the `+` icon to add one!
+                No goals created yet. Tap the `+` icon to add one goal!
               </Text>
             </View>
           ) : (

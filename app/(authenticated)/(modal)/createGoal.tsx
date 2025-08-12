@@ -1,16 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
-import {
-  ActivityIndicator,
-  Alert,
-  Modal,
-  ScrollView,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from "react-native";
+import { ActivityIndicator, Alert, Modal, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import ColorInputSelector from "@/components/ColorInputSelector";
 import ColorSelectionModal from "@/components/ColorSelectionModal";
@@ -19,16 +10,15 @@ import GoalIconInputSelector from "@/components/GoalIconInputSelector";
 import GoalIconSelectionModal from "@/components/GoalIconSelectionModal";
 import Button from "@/components/ui/Button";
 import { FormInput } from "@/components/ui/Input";
-import { Colors, getGoalColors } from "@/constants/Colors";
+import { getGoalColors } from "@/constants/Colors";
 import { GoalIcon, goalIconCategories } from "@/constants/goalIconCategories";
+import { useTheme } from "@/context/ThemeContext";
 import { createGoal, getCurrentUser } from "@/lib/appwrite"; // Asumiendo que necesitas el ID de usuario
 import { GoalData, GoalSchema } from "@/models/GoalSchema"; // Importa tu esquema de Zod
 import { router } from "expo-router";
 
 export default function CreateGoal() {
-  // Determina el esquema de color del sistema
-  const colorScheme = useColorScheme(); // 'light' o 'dark'
-  const colors = colorScheme === "dark" ? Colors.dark : Colors.light;
+  const { colors } = useTheme();
 
   const [isLoadingInitialData, setIsLoadingInitialData] = useState(true);
   const [showColorModal, setShowColorModal] = useState(false);
