@@ -16,7 +16,7 @@ import {
   PlusJakartaSans_800ExtraBold,
 } from "@expo-google-fonts/plus-jakarta-sans";
 import { useFonts } from "expo-font";
-import { Stack, useRouter } from "expo-router";
+import { Stack, usePathname, useRouter } from "expo-router";
 import * as SplashScreenExpo from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
@@ -32,19 +32,25 @@ SplashScreenExpo.setOptions({
 function AppContent() {
   const { isLogged, loading } = useGlobalContext();
   const [checking, setChecking] = useState(true);
+  const pathname = usePathname();
 
   const router = useRouter();
 
   useEffect(() => {
+    let didValidate = false;
+
     const validate = async () => {
+      if (didValidate) return; // evitar doble ejecución
+      didValidate = true;
+
       const seenOnboarding = await hasSeenOnboarding();
 
-      if (!seenOnboarding) {
+      if (!seenOnboarding && pathname !== "/onboarding") {
         router.replace("/onboarding");
         return;
       }
 
-      if (!loading && !isLogged) {
+      if (!loading && !isLogged && pathname !== "/auth") {
         router.replace("/auth");
         return;
       }
@@ -86,14 +92,25 @@ export default function RootLayout() {
     "PlusJakartaSans-ExtraBold": PlusJakartaSans_800ExtraBold,
   });
 
+  // useEffect(() => {
+  //   if (fontsLoaded || fontError) {
+  //     SplashScreenExpo.hideAsync();
+  //   }
+  // }, [fontsLoaded, fontError]);
+
   useEffect(() => {
+    console.log("fontsLoaded:", fontsLoaded, "fontError:", fontError);
     if (fontsLoaded || fontError) {
-      SplashScreenExpo.hideAsync();
+      SplashScreenExpo.hideAsync().catch(console.warn);
     }
   }, [fontsLoaded, fontError]);
 
   if (!fontsLoaded && !fontError) {
-    return null;
+    return (
+      <View>
+        <ActivityIndicator size="large" color={Colors.light.green} />
+      </View>
+    );
   }
 
   return (
