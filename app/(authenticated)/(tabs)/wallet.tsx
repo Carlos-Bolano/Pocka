@@ -67,7 +67,7 @@ export default function Wallet() {
   );
 
   return (
-    <CustomSafeAreaView style={[{ backgroundColor: colors.yellow, flex: 1 }]}>
+    <CustomSafeAreaView style={[{ backgroundColor: colors.yellow }]}>
       <View style={[styles.container, { flex: 1 }]}>
         <View style={{ gap: 10, paddingTop: 10, paddingHorizontal: 20 }}>
           <HeaderSection
@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   transactionsContainer: {
-    flex: 1,
+    height: "100%",
     gap: 10,
     marginTop: 20,
     borderTopEndRadius: 40,
